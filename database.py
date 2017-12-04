@@ -3,9 +3,8 @@ import os, sys, logging, time, configparser
 from pymongo import MongoClient,  DESCENDING
 import pandas as pd
 
-# app_home = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-# # sys.path.append(app_home)
-# sys.path.append(os.path.join(app_home, "lib"))
+import sys, os
+PYMONGO_DIR = os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
 
 LOG_LEVEL = 'DEBUG'
 logging.basicConfig(
@@ -16,7 +15,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Const of database name
-DICTIONARY_DB = "dicttionaries"
+DICTIONARY_DB = "dictionaries"
 PL_COLLECTION_NAME = "politely"
 
 POLITELY_DICT_DB = "politely_dict"
@@ -34,7 +33,7 @@ SENTIDIC_COLLECTION_NAME = "sent_dic"
 
 def get_db(db_name):
     config = configparser.ConfigParser()
-    config.read( './config.ini')
+    config.read(PYMONGO_DIR + '/config.ini')
     client = MongoClient('localhost')
     client['admin'].authenticate(config.get('mongo', 'id'), config.get('mongo', 'password'))
     # client = get_MongoClient()
@@ -42,24 +41,24 @@ def get_db(db_name):
     return db
 
 def load_politly_dic(collection_name):
-    db = get_db(POLITELY_DICT_DB)
+    # db = get_db(POLITELY_DICT_DB)
+    db = get_db(DICTIONARY_DB)
     cursor = db[collection_name].find()
     df = pd.DataFrame.from_dict(list(cursor)).astype(object)
     return df
 
-# TODO: multi word (ex.あきれる た
-def get_sentidic_score(headword, *, type=None):
-    db = get_db(POLITELY_DICT_DB)
-    # TODO: type
-    res = db[SENTIDIC_COLLECTION_NAME].find_one({'headword':headword})
-    logger.info(res)
-    score = 0
-    if res:
-        score = res['score']
-        return score
+def save_dict(collection_name, dict_objs):
+    db = get_db(DICTIONARY_DB)
+    coll = db[collection_name]
+    for dict_obj in dict_objs:
+        coll.update({
+            "headword": dict_obj['headword']
+        },
+        dict_obj, upsert=True)
+    return
 
 if __name__ == "__main__":
-    df = load_politly_dic(SENTIDIC_COLLECTION_NAME)
+    df = load_politly_dic("politely_JP")
     print(df.shape, df.dtypes, df.columns, df.index)
     print(df.head(10))
 

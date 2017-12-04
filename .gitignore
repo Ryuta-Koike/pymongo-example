@@ -1,1 +1,4 @@
 config.ini
+*.dic
+__init__.py
+__pycache__/*

@@ -33,6 +33,19 @@ db.[collection].aggregate(
  {$sort:{"count":-1}}
  )
 ```
+# prepare dictionaries from dict files
+
+- put dict file and set header line.
+```
+sed -i "1iheadword\tlabel\tdetail" *****.dic
+```
+- save to mongoDB
+```
+python init_collections_from_file.py -d"\t" -f **.dic --HEADER Y
+
+[sample]
+init_politely_dic.sh
+```
 
 # use as a submodule
 
